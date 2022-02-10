@@ -16,6 +16,7 @@
       return;
     }
     radii = convertToArray(radii);
+    
     let upperLeft, upperRight, lowerRight, lowerLeft;
     if (radii.length === 4) {
       upperLeft = toCornerPoint(radii[0]);
@@ -87,21 +88,29 @@
     this.moveTo(x, y);
 
     function convertToArray(value) {
+      if (typeof value === "string") {
+        return [value];
+      }
       try {
         return [...value];
       } catch (err) {
-        throw new TypeError(`${ getErrorMessageHeader(this) } The provided value cannot be converted to a sequence.`);
+        return [value];
       }
     }
 
+    function toUnrestrictedNumber(value) {
+      return +value;
+    }
+
     function toCornerPoint(value) {
-      if (Number.isFinite(value)) {
+      const asNumber = toUnrestrictedNumber(value);
+      if (Number.isFinite(asNumber)) {
         return {
-          x: value,
-          y: value
+          x: asNumber,
+          y: asNumber
         };
       }
-      if (value && typeof value === "object") {
+      if (Object(value) === value) {
         return {
           x: value.x ?? 0,
           y: value.y ?? 0
@@ -137,9 +146,11 @@
   }
 
   function getConstructorName(instance) {
-    return instance instanceof Path2D ? "Path2D" :
+    return Object(instance) === instance &&
+      instance instanceof Path2D ? "Path2D" :
       instance instanceof globalThis?.CanvasRenderingContext2D ? "CanvasRenderingContext2D" :
       instance instanceof globalThis?.OffscreenCanvasRenderingContext2D ? "OffscreenCanvasRenderingContext2D" :
-      instance?.constructor.name;
+      instance?.constructor.name ||
+      instance;
   }
 })();
