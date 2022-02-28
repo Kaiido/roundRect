@@ -15,7 +15,7 @@
     if (!([x, y, w, h].every((input) => Number.isFinite(input)))) {
       return;
     }
-    radii = convertToArray(radii);
+    radii = parseRadiiArgument(radii);
     
     let upperLeft, upperRight, lowerRight, lowerLeft;
     if (radii.length === 4) {
@@ -87,15 +87,43 @@
     this.closePath();
     this.moveTo(x, y);
 
-    function convertToArray(value) {
-      if (typeof value === "string") {
-        return [value];
+
+    function parseRadiiArgument(arg) {
+      const arr = convertRadiiArgumentToArray(arg);
+      return arr;
+    }
+    function convertRadiiArgumentToArray(value) {
+      // https://webidl.spec.whatwg.org/#es-union
+      // with 'optional (unrestricted double or DOMPointInit
+      //   or sequence<(unrestricted double or DOMPointInit)>) radii = 0'
+      const type = typeof value;
+      if (type === "undefined" || value === null) {
+        return [0];
       }
-      try {
-        return [...value];
-      } catch (err) {
-        return [value];
+      if (type === "function") {
+        return [NaN];
       }
+      if (type === "object") {
+        if (typeof value[Symbol.iterator] === "function") {
+          return [...value].map((elem) => {
+            // https://webidl.spec.whatwg.org/#es-union
+            // with '(unrestricted double or DOMPointInit)'
+            const elemType = typeof elem;
+            if (elemType === "undefined" || elem === null) {
+              return 0;
+            }
+            if (elemType === "function") {
+              return NaN;
+            }
+            if (elemType === "object") {
+              return new DOMPoint(elem);
+            }
+            return Number(elem);
+          });
+        }
+        return [new DOMPoint(value)];
+      }
+      return [Number(value)];
     }
 
     function toUnrestrictedNumber(value) {
