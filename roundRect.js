@@ -175,7 +175,7 @@
 
     function toUnrestrictedNumber(value) {
 
-      return Number(value);
+      return +value;
 
     }
 
@@ -193,8 +193,8 @@
       if (Object(value) === value) {
 
         return {
-          x: value.x ?? 0,
-          y: value.y ?? 0
+          x: toUnrestrictedNumber(value.x ?? 0),
+          y: toUnrestrictedNumber(value.y ?? 0)
         };
 
       }
