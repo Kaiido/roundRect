@@ -160,7 +160,7 @@
             if (elemType === "object") {
               return toDOMPointInit(elem);
             }
-            return Number(elem);
+            return toUnrestrictedNumber(elem);
           });
 
         }
